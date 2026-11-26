@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Hub v1.5.0</title>
+    <style>
+        body {
+            background-color: #000000;
+            color: #58a6ff;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 40px;
+            line-height: 1.6;
+        }
+        h1 { color: #58a6ff; font-size: 26px; margin-bottom: 5px; }
+        .status { color: #7ee787; font-weight: bold; margin-bottom: 20px; }
+        .log-entry { margin: 5px 0; font-size: 14px; color: #8b949e; }
+        .badge { color: #e3b341; font-size: 12px; border: 1px solid #d29922; border-radius: 4px; padding: 2px 8px; margin-left: 8px; }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px 5px 5px 0;
+            background: #161b22;
+            color: #c9d1d9;
+            text-decoration: none;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: 0.2s;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .btn:hover { background: #30363d; border-color: #8b949e; color: #ffffff; }
+
+        .btn-custom { border-color: #58a6ff; color: #58a6ff; }
+        .btn-custom:hover { background: #1f6feb; color: #ffffff; border-color: #58a6ff; }
+
+        .btn-portal { border-color: #e36049; color: #f78166; }
+        .btn-portal:hover { background: #da3633; color: #ffffff; border-color: #f78166; }
+
+        .btn-stream { border-color: #238636; color: #3fb950; }
+        .btn-stream:hover { background: #238636; color: #ffffff; border-color: #2ea043; }
+
+        .btn-comm { border-color: #8957e5; color: #a371f7; }
+        .btn-comm:hover { background: #8957e5; color: #ffffff; border-color: #a371f7; }
+
+        .btn-dl { border-color: #d29922; color: #e3b341; }
+        .btn-dl:hover { background: #d29922; color: #ffffff; border-color: #e3b341; }
+
+        .btn-new { border-color: #f0883e; color: #f0883e; }
+        .btn-new:hover { background: #bb6312; color: #ffffff; border-color: #f0883e; }
+
+        .return-btn { background: #000000; color: #000000; border: 1px solid #000000; cursor: default; }
+        .return-btn:hover { background: #161b22; color: #c9d1d9; border-color: #30363d; }
+
+        /* Embedded Player Frame */
+        #gameViewerContainer {
+            display: none;
+            margin: 20px 0;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        #gameFrame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 4px;
+            background: #000;
+        }
+
+        /* Messaging Terminal Window */
+        .messaging-card {
+            display: none;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 15px;
+            max-width: 650px;
+        }
+
+        .chat-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .tab-btn {
+            padding: 6px 12px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+        }
+        .tab-btn.active {
+            border-color: #a371f7;
+            color: #a371f7;
+            font-weight: bold;
+        }
+
+        .auth-group { display: flex; gap: 10px; margin-bottom: 15px; }
+
+        .term-input {
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 13px;
+        }
+        .term-input:focus { outline: none; border-color: #58a6ff; }
+
+        .chat-box {
+            background: #010409;
+            border: 1px solid #21262d;
+            border-radius: 4px;
+            height: 220px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .chat-msg { margin-bottom: 6px; }
+        .chat-user { color: #a371f7; font-weight: bold; }
+        .chat-dm { color: #d29922; font-weight: bold; }
+        .chat-system { color: #7ee787; font-weight: bold; }
+        .chat-text { color: #c9d1d9; }
+
+        hr { border: 0; border-top: 1px solid #30363d; margin: 25px 0; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; }
+        li::before { content: "• "; color: #58a6ff; }
+        .tag-new { color: #f0883e; font-size: 11px; font-weight: bold; margin-left: 6px; }
+    </style>
+</head>
+<body>
+    <h1>&gt; OFFLINE_HUB_v1.5.0 <span class="badge">REFRESH BUILD</span></h1>
+    <div class="status">Status: ENCRYPTED_CONNECTION_ACTIVE // BUILD_STABLE // NETWORK_SYNC_ENABLED</div>
+
+    <div class="log-entry">&gt; Initializing local environment...</div>
+    <div class="log-entry">&gt; In-tab view rendering engine: ONLINE.</div>
+    <div class="log-entry">&gt; Local message filter and routing active.</div>
+    <div class="log-entry">&gt; LiveSync channel (tabs &amp; windows): LISTENING.</div>
+
+    <hr>
+
+    <!-- Embedded In-Tab Viewer -->
+    <div id="gameViewerContainer">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span id="activeModuleTitle" style="color: #7ee787; font-weight: bold;">&gt; ACTIVE_MODULE</span>
+            <button class="btn btn-portal" style="padding: 4px 10px; margin: 0; font-size: 12px;" onclick="closeViewer()">[X] Close Module</button>
+        </div>
+        <iframe id="gameFrame" src=""></iframe>
+    </div>
+
+    <p>// PRIORITY MODULES (IN-TAB LAUNCH) //</p>
+    <ul>
+        <li><button class="btn btn-custom" onclick="launchInTab('https://pixel-play-app.base44.app', 'Pixel Play Hub')">Launch Priority (Pixel Play / Base44)</button></li>
+        <li><button class="btn btn-portal" onclick="launchInTab('https://sites.google.com/view/drive-u-7-home/home', 'Drive U 7 Main Portal')">Launch Drive U 7 Portal Main</button></li>
+    </ul>
+
+    <hr>
+
+    <p>// BROWSER GAME MODULES (IN-TAB LAUNCH) //</p>
+    <ul>
+        <li><button class="btn btn-portal" onclick="launchInTab('https://sites.google.com/view/drive-u-7-home/home', 'Granny Module')">Module_01 (Granny)</button></li>
+        <li><button class="btn btn-portal" onclick="launchInTab('https://sites.google.com/view/drive-u-7-home/cookie-clicker', 'Cookie Clicker')">Module_02 (Cookie Clicker)</button></li>
+        <li><button class="btn btn-portal" onclick="launchInTab('https://sites.google.com/view/drive-u-7-home/moto-x3m-3', 'Moto X3M')">Module_03 (Moto X3M)</button></li>
+        <li><button class="btn btn-portal" onclick="launchInTab('https://sites.google.com/view/drive-u-7-home/snow-rider-3d', 'Snow Rider 3D')">Module_04 (Snow Rider 3D)</button></li>
+        <li><button class="btn btn-portal" onclick="launchInTab('https://sites.google.com/view/drive-u-7-home/run-3', 'Run 3')">Module_05 (Run 3 Protocol)</button></li>
+        <li><button class="btn" onclick="launchInTab('https://slope3unblocked.github.io/', 'Slope Engine')">Module_06 (Slope)</button></li>
+        <li><button class="btn" onclick="launchInTab('https://1v1.lol/', '1v1 Tactical')">Module_07 (1v1.LOL)</button></li>
+        <li><button class="btn" onclick="launchInTab('https://retrobowl.me/', 'Retro Bowl Strategy')">Module_08 (Retro Bowl)</button></li>
+        <li><button class="btn" onclick="launchInTab('https://paperio.gg/', 'Paper.io 2 Matrix')">Module_09 (Paper.io 2)</button></li>
+        <li><button class="btn" onclick="launchInTab('https://play2048.co/', '2048 Logic Sequence')">Module_10 (2048 Logic)</button></li>
+        <li><button class="btn btn-new" onclick="launchInTab('https://hextris.io/', 'Hextris Engine')">Module_11 (Hextris)<span class="tag-new">NEW</span></button></li>
+        <li><button class="btn btn-new" onclick="launchInTab('https://alexnisnevich.github.io/untrusted/', 'Untrusted Code Game')">Module_12 (Untrusted)<span class="tag-new">NEW</span></button></li>
+        <li><button class="btn btn-new" onclick="launchInTab('https://littlealchemy2.com/', 'Little Alchemy 2')">Module_13 (Little Alchemy 2)<span class="tag-new">NEW</span></button></li>
+        <li><button class="btn btn-new" onclick="launchInTab('https://sadlimp.github.io/geodash3/', 'GeoDash 3 Engine')">Module_14 (Geometry Dash Clone)<span class="tag-new">NEW</span></button></li>
+        <li><button class="btn btn-new" onclick="launchInTab('https://flappybird.io/', 'Flappy Sequence')">Module_15 (Flappy Bird)<span class="tag-new">NEW</span></button></li>
+    </ul>
+
+    <hr>
+
+    <p>// CLOUD STREAMING &amp; PLATFORMS //</p>
+    <ul>
+        <li><button class="btn btn-stream" onclick="launchInTab('https://www.xbox.com/en-US/play/gallery/fortnite', 'Fortnite Stream')">Stream Fortnite (xCloud Direct)</button></li>
+        <li><button class="btn btn-stream" onclick="launchInTab('https://www.xbox.com/en-US/play', 'xCloud Platform')">Launch Xbox Cloud Gaming</button></li>
+        <li><button class="btn btn-stream" onclick="launchInTab('https://now.gg', 'now.gg Hub')">Launch now.gg Container Hub</button></li>
+    </ul>
+
+    <hr>
+
+    <div class="log-entry">&gt; System navigation options:</div>
+    <button class="btn btn-comm" onclick="toggleMessaging()">Initialize Comms Terminal (LiveSync)</button>
+    <button class="btn btn-dl" onclick="downloadPage()">Download Offline Hub</button>
+    <a href="index.html" class="btn return-btn">Return to Primary Hub</a>
+
+    <!-- Messaging Window -->
+    <div id="messagingPanel" class="messaging-card" style="display: none;">
+        <p style="margin-top: 0; color: #a371f7; font-weight: bold;">// COMMS_NODE v1.5.0 // LIVE_SYNC_ACROSS_TABS //</p>
+
+        <!-- Local Account Auth Section -->
+        <div id="authContainer" class="auth-group">
+            <input type="text" id="usernameInput" class="term-input" placeholder="Handle / Alias">
+            <input type="password" id="passwordInput" class="term-input" placeholder="Access Code">
+            <button class="btn btn-comm" style="padding: 8px 15px; margin: 0;" onclick="loginUser()">Authenticate</button>
+        </div>
+
+        <div id="userStatus" class="log-entry" style="color: #7ee787; display: none; margin-bottom: 10px;">
+            &gt; Session Active: <span id="activeUserDisplay"></span> <span style="color:#8b949e">(synced across all open tabs)</span>
+        </div>
+
+        <!-- Mode Toggle Tabs -->
+        <div class="chat-tabs">
+            <button class="tab-btn active" id="tabPublic" onclick="setChatMode('PUBLIC')">PM (Public Channel)</button>
+            <button class="tab-btn" id="tabDM" onclick="setChatMode('DM')">DM (Direct Message)</button>
+        </div>
+
+        <!-- Recipient input for DMs -->
+        <div id="dmTargetContainer" style="display: none; margin-bottom: 10px;">
+            <input type="text" id="dmTargetInput" class="term-input" style="width: 100%; box-sizing: border-box;" placeholder="Enter Recipient Handle for DM...">
+        </div>
+
+        <!-- Chat Feed -->
+        <div id="chatFeed" class="chat-box">
+            <div class="chat-msg"><span class="chat-system">[SYSTEM]:</span> <span class="chat-text">v1.5.0 active. LiveSync online — messages broadcast to every open tab/window of this browser.</span></div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="auth-group" style="margin-bottom: 0;">
+            <input type="text" id="msgInput" class="term-input" style="flex: 1;" placeholder="Enter packet..." onkeydown="if(event.key==='Enter')sendMessage()">
+            <button id="sendBtn" class="btn" style="padding: 8px 15px; margin: 0;" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let chatMode = 'PUBLIC'; // 'PUBLIC' or 'DM'
+        const seen = new Set(); // dedupe synced messages
+
+        // --- LiveSync via BroadcastChannel (all tabs/windows on this device) ---
+        const CHANNEL_NAME = 'offline_hub_v150_comms';
+        let channel = null;
+        try {
+            channel = new BroadcastChannel(CHANNEL_NAME);
+            channel.onmessage = (ev) => {
+                if (ev.data && ev.data.type === 'msg') receiveMessage(ev.data.payload);
+                if (ev.data && ev.data.type === 'presence') presencePing(ev.data.user);
+            };
+            // Announce presence if already logged in
+            if (currentUser) channel.postMessage({ type: 'presence', user: currentUser });
+        } catch (e) {
+            console.warn('BroadcastChannel unavailable — chat will be local-only.');
+        }
+
+        // --- Profanity filter (auto-moderation) ---
+        const badWords = [
+            "fuck", "shit", "bitch", "ass", "cunt", "dick", "cock", "slut", "whore",
+            "nigga", "nigger", "fag", "faggot", "retard", "kike", "spic", "chink",
+            "rape", "bastard", "wanker", "twat", "bollocks", "damn"
+        ];
+
+        function filterText(text) {
+            let filtered = text;
+            badWords.forEach(word => {
+                const regex = new RegExp("\\b" + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "\\w*", "gi");
+                filtered = filtered.replace(regex, "****");
+            });
+            return filtered;
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // --- Viewer ---
+        function launchInTab(url, title) {
+            const container = document.getElementById('gameViewerContainer');
+            const iframe = document.getElementById('gameFrame');
+            const titleDisplay = document.getElementById('activeModuleTitle');
+
+            titleDisplay.innerText = '> ACTIVE_MODULE: ' + title.toUpperCase();
+            iframe.src = url;
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function closeViewer() {
+            document.getElementById('gameFrame').src = '';
+            document.getElementById('gameViewerContainer').style.display = 'none';
+        }
+
+        // --- Panel & tabs ---
+        function toggleMessaging() {
+            const panel = document.getElementById('messagingPanel');
+            panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
+        }
+
+        function setChatMode(mode) {
+            chatMode = mode;
+            document.getElementById('tabPublic').classList.toggle('active', mode === 'PUBLIC');
+            document.getElementById('tabDM').classList.toggle('active', mode === 'DM');
+            document.getElementById('dmTargetContainer').style.display = (mode === 'DM') ? 'block' : 'none';
+        }
+
+        // --- Auth ---
+        function loginUser() {
+            const user = document.getElementById('usernameInput').value.trim();
+            const pass = document.getElementById('passwordInput').value.trim();
+
+            if (user !== "" && pass !== "") {
+                currentUser = user;
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('activeUserDisplay').innerText = escapeHTML(currentUser);
+                document.getElementById('userStatus').style.display = 'block';
+
+                document.getElementById('msgInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+
+                systemMsg('Welcome, ' + escapeHTML(currentUser) + '. LiveSync session authorized.');
+                if (channel) {
+                    channel.postMessage({ type: 'presence', user: currentUser });
+                    // Tell other tabs who is here
+                    const payload = { kind: 'join', user: currentUser, time: Date.now(), id: uid() };
+                    channel.postMessage({ type: 'msg', payload: payload });
+                }
+            } else {
+                alert('ACCESS DENIED: Please enter both a Handle and an Access Code.');
+            }
+        }
+
+        // --- Messaging ---
+        function uid() {
+            return Date.now().toString(36) + Math.random().toString(36).slice(2);
+        }
+
+        function appendMsg(html) {
+            const feed = document.getElementById('chatFeed');
+            feed.innerHTML += html;
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function systemMsg(text) {
+            appendMsg('<div class="chat-msg"><span class="chat-system">[SYSTEM]:</span> <span class="chat-text">' + text + '</span></div>');
+        }
+
+        function sendMessage() {
+            const msgField = document.getElementById('msgInput');
+            const rawMsg = msgField.value.trim();
+            if (!rawMsg) return;
+            if (!currentUser) { alert('Authenticate first.'); return; }
+
+            const cleanMsg = filterText(rawMsg);
+            const target = (chatMode === 'DM') ? (document.getElementById('dmTargetInput').value.trim() || 'Unknown') : null;
+
+            const payload = {
+                kind: 'chat',
+                user: currentUser,
+                mode: chatMode,
+                target: target,
+                text: cleanMsg,
+                time: Date.now(),
+                id: uid()
+            };
+
+            renderPayload(payload, true);
+
+            if (channel) channel.postMessage({ type: 'msg', payload: payload });
+
+            msgField.value = '';
+        }
+
+        function receiveMessage(payload) {
+            if (!payload || !payload.id) return;
+            if (seen.has(payload.id)) return;
+            if (payload.kind === 'join') {
+                if (payload.user !== currentUser) systemMsg(escapeHTML(payload.user) + ' joined from another tab.');
+                seen.add(payload.id);
+                return;
+            }
+            // DM privacy: only show DMs addressed to me, or sent by me
+            if (payload.mode === 'DM' && currentUser &&
+                payload.target !== currentUser && payload.user !== currentUser) return;
+            renderPayload(payload, false);
+        }
+
+        function renderPayload(p, isMine) {
+            seen.add(p.id);
+            const t = new Date(p.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (p.mode === 'DM') {
+                appendMsg('<div class="chat-msg"><span class="chat-dm">[DM to ' + escapeHTML(p.target) + '] ' + escapeHTML(p.user) + ':</span> <span class="chat-text">' + p.text + ' <span style="color:#484f58">·' + t + '</span></span></div>');
+            } else {
+                appendMsg('<div class="chat-msg"><span class="chat-user">[PM] ' + escapeHTML(p.user) + (isMine ? ' / you' : '') + ':</span> <span class="chat-text">' + p.text + ' <span style="color:#484f58">·' + t + '</span></span></div>');
+            }
+        }
+
+        function presencePing(user) {
+            if (user !== currentUser) systemMsg(escapeHTML(user) + ' is online in another tab.');
+        }
+
+        // --- Download ---
+        function downloadPage() {
+            const pageData = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const blob = new Blob([pageData], { type: 'text/html' });
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = 'offline_hub_v1.5.0.html';
+            downloadLink.click();
+        }
+    </script>
+</body>
+</html>
